@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Manager (CSR Stack)</title>
+    <!-- Seamlessly import Oat UI semantic styling sheets -->
+    <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+</head>
+<body>
+    <header style="padding: 20px; border-bottom: 1px solid #eee;">
+        <nav style="display: flex; gap: 15px; font-weight: bold;">
+            <a href="/" onclick="routeTo(event, '/')">Dashboard Invoices</a>
+            <a href="/customers" onclick="routeTo(event, '/customers')">Manage Customers</a>
+        </nav>
+    </header>
+    
+    <main id="app-view-pane" style="padding: 30px;"></main>
+
+    <!-- Import Oat UI component javascript handlers -->
+    <script src="https://unpkg.com/@knadh/oat/oat.min.js" defer></script>
+
+    <script>
+        // DOM Event Listener: Forces client-side application loading right when document tree boots up
+        document.addEventListener('DOMContentLoaded', () => {
+            renderActiveView(window.location.pathname);
+        });
+
+        // Router engine intercepts link clicks to prevent slow full-page server browser refreshes
+        function routeTo(event, path) {
+            event.preventDefault();
+            window.history.pushState({}, '', path);
+            renderActiveView(path);
+        }
+
+        // The View Switcher Engine: Matches URL parameters to custom dynamic UI builders
+        function renderActiveView(path) {
+            const viewPane = document.getElementById('app-view-pane');
+            viewPane.innerHTML = "<h4>Loading data block...</h4>";
+
+            if (path === '/' || path === '/invoices') {
+                loadDashboardView(viewPane);
+            } else if (path.startsWith('/invoices/')) {
+                const parts = path.split('/');
+                const id = parts[2];
+                loadSingleInvoiceView(viewPane, id);
+            } else {
+                viewPane.innerHTML = "<h2>Page Area Found Outside Current Router Scope</h2>";
+            }
+        }
+
+        // Asynchronous Fetch Workflow: Resolves promises and executes DOM modifications
+        function loadDashboardView(container) {
+            fetch('/api/invoices')
+                .then(response => response.json()) // Handles incoming JSON parsing promise rules
+                .then(invoices => {
+                    let rowsHtml = '';
+                    invoices.forEach(inv => {
+                        let badgeColor = inv.status === 'Paid' ? 'color: #28a745;' : 'color: #d9534f; font-weight: bold;';
+                        rowsHtml += `
+                            <tr>
+                                <td>#${inv.id}</td>
+                                <td>${inv.customer_name}</td>
+                                <td>${inv.invoice_date}</td>
+                                <td>${inv.due_date}</td>
+                                <td style="${badgeColor}">${inv.status}</td>
+                                <td><a href="/invoices/${inv.id}" onclick="routeTo(event, '/invoices/${inv.id}')">View Details</a></td>
+                            </tr>
+                        `;
+                    });
+
+                    // Direct DOM Manipulation mapping into Oat UI tabular grids
+                    container.innerHTML = `
+                        <h2>Invoice Dashboard</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Issue Date</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml || '<tr><td colspan="6">No registered invoice data models located.</td></tr>'}</tbody>
+                        </table>
+                    `;
+                });
+        }
+
+        function loadSingleInvoiceView(container, id) {
+            fetch(`/api/invoices/${id}`)
+                .then(response => response.json())
+                .then(inv => {
+                    let itemsRows = '';
+                    inv.items.forEach(item => {
+                        itemsRows += `
+                            <tr>
+                                <td>${item.description}</td>
+                                <td style="text-align: center;">${item.quantity}</td>
+                                <td style="text-align: right;">$${item.unit_price.toFixed(2)}</td>
+                                <td style="text-align: right;">$${item.total.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+
+                    container.innerHTML = `
+                        <div style="background: white; padding: 25px; border: 1px solid #ddd; border-radius: 4px;">
+                            <h2>INVOICE #${inv.id}</h2>
+                            <p><strong>Status:</strong> ${inv.status}</p>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <button onclick="togglePaymentStatus(${inv.id})">⚙️ Toggle Payment Status</button>
+                                <a href="/invoices/${inv.id}/download" class="btn" style="padding: 8px 12px; background: #0066cc; color: white; text-decoration: none; border-radius: 4px;">⬇️ Download Print PDF</a>
+                            </div>
+
+                            <hr>
+                            <h4>Client Profile:</h4>
+                            <p><strong>${inv.customer.name}</strong> (${inv.customer.email})</p>
+                            <p style="white-space: pre-line;">${inv.customer.address}</p>
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th style="text-align: center;">Qty</th>
+                                        <th style="text-align: right;">Unit Cost</th>
+                                        <th style="text-align: right;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${itemsRows}</tbody>
+                            </table>
+                            <h3 style="text-align: right;">Grand Total Due: $${inv.subtotal.toFixed(2)}</h3>
+                        </div>
+                    `;
+                });
+        }
+
+        // Live Action Toggler: Dispatches a dynamic post mutation back to our SQL schemas
+        function togglePaymentStatus(id) {
+            fetch(`/api/invoices/${id}/toggle-status`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderActiveView(window.location.pathname); // Instantly triggers local reload block
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

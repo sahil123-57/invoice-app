@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Add Customer Profile</h2>
+<form method="POST">
+    <div>
+        <label class="required-label">Full Name</label>
+        <input type="text" name="name" required>
+    </div>
+    <div>
+        <label class="required-label">Email Address</label>
+        <input type="email" name="email" required>
+    </div>
+    <div>
+        <label class="required-label">Physical Billing Address</label>
+        <textarea name="address" rows="3" placeholder="Enter complete billing layout..." required></textarea>
+    </div>
+    <button type="submit">Save Customer</button>
+</form>
+{% endblock %}

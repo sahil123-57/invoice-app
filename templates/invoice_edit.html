@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Edit Invoice #{{ invoice.id }}</h2>
+
+<form method="POST">
+    <h3>Your Company Details</h3>
+    <div>
+        <label class="required-label">Your Company Name</label>
+        <input type="text" name="my_company_name" value="{{ invoice.my_company_name }}" required>
+    </div>
+    <div>
+        <label class="required-label">Your Company Address & Contact</label>
+        <textarea name="my_company_details" rows="2" required>{{ invoice.my_company_details }}</textarea>
+    </div>
+    
+    <hr>
+
+    <h3>Billing Details</h3>
+    <div>
+        <label class="required-label">Target Customer</label>
+        <select name="customer_id" required>
+            {% for c in customers %}
+                <option value="{{ c.id }}" {% if c.id == invoice.customer.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div>
+        <label class="required-label">Invoice Date</label>
+        <input type="date" name="invoice_date" value="{{ invoice.invoice_date }}" required>
+    </div>
+    
+    <div>
+        <label class="required-label">Due Date</label>
+        <input type="date" name="due_date" value="{{ invoice.due_date }}" required>
+    </div>
+
+    <h3>Line Items</h3>
+    <div id="items-container">
+        {% for item in invoice.items %}
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <input type="text" name="desc[]" value="{{ item.description }}" placeholder="Description/Service" style="flex:3;" required>
+            <input type="number" name="qty[]" value="{{ "%g" % item.quantity }}" placeholder="Qty" style="flex:1;" step="0.01" required>
+            <input type="number" name="price[]" value="{{ item.unit_price }}" placeholder="Price" style="flex:1;" step="0.01" required>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-bottom:20px;">
+        <button type="button" onclick="addRow()">+ Add Line Item</button>
+    </div>
+    
+    <div style="display:flex; gap:10px; align-items:center;">
+        <button type="submit">Save Changes</button>
+        <a href="{{ url_for('invoice_view', invoice_id=invoice.id) }}">Cancel</a>
+    </div>
+</form>
+
+<script>
+function addRow() {
+    var container = document.getElementById('items-container');
+    var div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.innerHTML = '<input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>' +
+                    '<input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>' +
+                    '<input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>';
+    container.appendChild(div);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Invoice Dashboard</h2>
+
+<p>
+    <a href="{{ url_for('invoice_form') }}">Create New Invoice</a>
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Issue Date</th>
+            <th>Due Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inv in invoices %}
+        <tr>
+            <td>#{{ inv.id }}</td>
+            <td>{{ inv.customer.name }}</td>
+            <td>{{ inv.invoice_date }}</td>
+            <td>{{ inv.due_date }}</td>
+            <td>
+                <a href="{{ url_for('invoice_view', invoice_id=inv.id) }}">View Invoice</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

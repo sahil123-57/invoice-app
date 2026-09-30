@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Generate New Invoice</h2>
+
+<form method="POST">
+    <h3>Your Company Details</h3>
+    <div>
+        <label class="required-label">Your Company Name</label>
+        <input type="text" name="my_company_name" value="Your Company Name" required>
+    </div>
+    <div>
+        <label class="required-label">Your Company Address & Contact</label>
+        <textarea name="my_company_details" rows="2" required>22 IT Park, Panchkula&#10;Haryana, Chandigarh, 160101</textarea>
+    </div>
+    
+    <hr>
+
+    <h3>Billing Details</h3>
+    <div>
+        <label class="required-label">Target Customer</label>
+        <select name="customer_id" required>
+            <option value="">-- Choose Account --</option>
+            {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div>
+        <label class="required-label">Invoice Date</label>
+        <input type="date" name="invoice_date" required>
+    </div>
+    
+    <div>
+        <label class="required-label">Due Date</label>
+        <input type="date" name="due_date" required>
+    </div>
+
+    <h3>Line Items</h3>
+    <div id="items-container">
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>
+            <input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>
+            <input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>
+        </div>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+        <button type="button" onclick="addRow()">+ Add Line Item</button>
+    </div>
+    
+    <button type="submit">Process & Finalize Invoice</button>
+</form>
+
+<script>
+function addRow() {
+    var container = document.getElementById('items-container');
+    var div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.innerHTML = '<input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>' +
+                    '<input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>' +
+                    '<input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>';
+    container.appendChild(div);
+}
+</script>
+{% endblock %}

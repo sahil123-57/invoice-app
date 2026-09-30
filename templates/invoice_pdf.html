@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice Summary #{{ invoice.id }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333333;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice-header {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        
+        .company-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111111;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .invoice-meta {
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .invoice-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #000;
+            letter-spacing: 1px;
+        }
+
+        .details-table {
+            width: 100%;
+            margin-bottom: 50px;
+        }
+        
+        .details-column {
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #777777;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .items-table th {
+            border-bottom: 2px solid #111111;
+            padding: 10px 4px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #333;
+        }
+
+        .items-table td {
+            border-bottom: 1px solid #eeeeee;
+            padding: 12px 4px;
+            vertical-align: middle;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-section {
+            float: right;
+            width: 40%;
+            margin-top: 15px;
+        }
+
+        .total-row td {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 2px solid #111111;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="invoice-header">
+        <tr>
+            <td style="vertical-align: top;">
+                <div class="company-title">{{ invoice.my_company_name }}</div>
+                <p style="white-space: pre-line; margin: 5px 0 0 0; color: #555;">{{ invoice.my_company_details }}</p>
+            </td>
+            <td class="invoice-meta" style="vertical-align: top;">
+                <div class="invoice-title">INVOICE</div>
+                <strong>Invoice ID:</strong> #{{ invoice.id }}<br>
+                <strong>Date:</strong> {{ invoice.invoice_date }}<br>
+                <strong>Due Date:</strong> {{ invoice.due_date }}
+            </td>
+        </tr>
+    </table>
+
+    <table class="details-table">
+        <tr>
+            <td class="details-column">
+                <div class="section-label">Bill To:</div>
+                <strong style="font-size: 14px;">{{ invoice.customer.name }}</strong><br>
+                <span style="color: #555;">{{ invoice.customer.email }}</span><br>
+                <p style="white-space: pre-line; margin: 5px 0 0 0; color: #444;">{{ invoice.customer.address }}</p>
+            </td>
+            <td class="details-column" style="text-align: right;">
+                <div class="section-label">Payment Status:</div>
+                {% if invoice.status == "Paid" %}
+                    <strong style="color: #28a745; font-size: 14px;">PAID</strong>
+                {% else %}
+                    <strong style="color: #d9534f; font-size: 14px;">Balance Due</strong>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th class="text-left" style="width: 45%;">Description</th>
+                <th class="text-center" style="width: 15%;">Qty</th>
+                <th class="text-right" style="width: 20%;">Unit Price</th>
+                <th class="text-right" style="width: 20%;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items %}
+            <tr>
+                <td class="text-left" style="font-weight: 500;">{{ item.description }}</td>
+                <td class="text-center">{{ "%g" % item.quantity }}</td>
+                <td class="text-right">${{ "{:,.2f}".format(item.unit_price) }}</td>
+                <td class="text-right">${{ "{:,.2f}".format(item.quantity * item.unit_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <table style="width: 100%;">
+            <tr class="total-row">
+                <td class="text-left">Total Due:</td>
+                <td class="text-right">${{ "{:,.2f}".format(subtotal) }}</td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

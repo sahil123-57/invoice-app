@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="background: white; padding: 30px; border: 1px solid #ddd;">
+    <h2>INVOICE #{{ invoice.id }}</h2>
+    
+    <div style="margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('invoice_pdf_download', invoice_id=invoice.id) }}">Download PDF</a>
+        <a href="{{ url_for('invoice_edit', invoice_id=invoice.id) }}">Edit Invoice</a>
+        
+        <form action="{{ url_for('toggle_status', invoice_id=invoice.id) }}" method="POST" style="margin: 0;">
+            {% if invoice.status == "Paid" %}
+                <button type="submit" style="background: #6c757d; color: white; border: none;">✓ Mark as Unpaid</button>
+            {% else %}
+                <button type="submit" style="background: #28a745; color: white; border: none;">$ Mark as Paid</button>
+            {% endif %}
+        </form>
+
+        <form action="{{ url_for('invoice_delete', invoice_id=invoice.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to permanently delete this invoice?');">
+            <button type="submit" style="background: #d9534f; color: white; border: none;">Permanent Delete</button>
+        </form>
+    </div>
+
+    <p>
+        <strong>Status:</strong> 
+        {% if invoice.status == "Paid" %}
+            <span style="color: #28a745; font-weight: bold; background: #e2f6ea; padding: 3px 8px; border-radius: 4px;">Paid</span>
+        {% else %}
+            <span style="color: #d9534f; font-weight: bold; background: #fdf2f2; padding: 3px 8px; border-radius: 4px;">Balance Due</span>
+        {% endif %}
+    </p>
+
+    <p><strong>Date Issued:</strong> {{ invoice.invoice_date }} | <strong>Payment Deadline:</strong> {{ invoice.due_date }}</p>
+    
+    <hr>
+    
+    <div>
+        <h4>Client Information</h4>
+        <p><strong>{{ invoice.customer.name }}</strong></p>
+        <p>{{ invoice.customer.email }}</p>
+        <p style="white-space: pre-line;">{{ invoice.customer.address }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left;">Description</th>
+                <th style="text-align: center; width: 15%;">Quantity</th>
+                <th style="text-align: right; width: 20%;">Unit Cost</th>
+                <th style="text-align: right; width: 20%;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items %}
+            <tr>
+                <td style="text-align: left;">{{ item.description }}</td>
+                <td style="text-align: center;">{{ "%g" % item.quantity }}</td>
+                <td style="text-align: right;">${{ "{:,.2f}".format(item.unit_price) }}</td>
+                <td style="text-align: right;">${{ "{:,.2f}".format(item.quantity * item.unit_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 style="text-align: right; margin-top: 20px;">Grand Total Due: ${{ "{:,.2f}".format(subtotal) }}</h3>
+</div>
+{% endblock %}
