@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Items{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Items</h2>
+    <a href="{{ url_for('add_item') }}" class="button">+ Add Item</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th class="right">Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in items %}
+            <tr>
+                <td><strong>{{ i.name }}</strong></td>
+                <td class="right">₹{{ '%.2f'|format(i.price) }}</td>
+                <td class="right">
+                    <div class="actions" style="justify-content: flex-end;">
+                        <a href="{{ url_for('edit_item', id=i.id) }}" class="button secondary">Edit</a>
+                        <form method="post" action="{{ url_for('delete_item', id=i.id) }}"
+                              onsubmit="return confirm('Delete this item?');">
+                            <button type="submit" class="secondary">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="muted">No items yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

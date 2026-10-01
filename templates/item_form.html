@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit" if item else "Add" }} Item{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>{{ "Edit" if item else "Add" }} Item</h2>
+</div>
+
+<form method="post" class="form-narrow">
+    <label>Name
+        <input type="text" name="name" value="{{ item.name if item else '' }}" placeholder="Web design" required>
+    </label>
+
+    <label>Price (₹)
+        <input type="number" name="price" value="{{ item.price if item else '0' }}" min="0" step="0.01" required>
+    </label>
+
+    <div class="actions">
+        <button type="submit">Save Item</button>
+        <a href="{{ url_for('items') }}" class="button secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

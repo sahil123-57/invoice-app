@@ -1,17 +1,173 @@
-body { font-family: sans-serif; margin: 40px; color: #333; background: #fafafa; }
-nav { margin-bottom: 30px; padding-bottom: 10px; border-bottom: 1px solid #ccc; }
-nav a { margin-right: 15px; text-decoration: none; color: #0066cc; }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
-th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-th { background-color: #f2f2f2; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
-.btn { padding: 8px 15px; background: #28a745; color: white; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
-.btn-secondary { background: #6c757d; }
-/* Styling to inject red required marks neatly next to text labels */
-.required-label::after {
-    content: " *";
-    color: #d9534f;
-    font-weight: bold;
+/* ---------- layout ---------- */
+body {
+    background: #f5f7fa;
+}
+
+.page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px 48px;
+}
+
+/* ---------- top bar ---------- */
+.topbar {
+    background: #fff;
+    border-bottom: 1px solid #e5e9f0;
+    margin-bottom: 32px;
+}
+.topbar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+.brand {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    margin-right: 8px;
+}
+.menu {
+    display: flex;
+    gap: 6px;
+}
+.menu a {
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #4b5563;
+    font-weight: 500;
+}
+.menu a:hover {
+    background: #eef2ff;
+    color: #1d4ed8;
+}
+.menu a.active {
+    background: #eef2ff;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* ---------- page header ---------- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.page-header h2 {
+    margin: 0;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.actions form {
+    margin: 0;
+}
+
+/* ---------- buttons ---------- */
+button:not(.secondary),
+a.button:not(.secondary) {
+    background: #2563eb;
+    color: #fff;
+    border-radius: 6px;
+}
+button:not(.secondary):hover,
+a.button:not(.secondary):hover {
+    background: #1d4ed8;
+}
+
+/* ---------- cards and tables ---------- */
+.table-wrap {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    padding: 4px 8px;
+    margin-bottom: 24px;
+}
+.table-wrap table {
+    margin: 0;
+}
+.table-wrap th,
+.table-wrap td {
+    padding: 14px 12px;
+}
+.table-wrap td .actions button,
+.table-wrap td .actions a.button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.right { text-align: right; }
+
+.muted {
+    color: #6b7280;
+    font-size: 0.9em;
+}
+
+/* ---------- forms ---------- */
+.form-narrow {
+    max-width: 480px;
+}
+form label {
+    margin-bottom: 16px;
+}
+form .actions {
+    margin-top: 20px;
+}
+h3 {
+    margin: 28px 0 12px;
+}
+
+/* ---------- dashboard boxes ---------- */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.stat {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+}
+.stat strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.6em;
+}
+
+/* ---------- invoice ---------- */
+.total {
+    text-align: right;
+    font-size: 1.3em;
+    font-weight: 600;
+    margin: 16px 0 24px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.badge-paid {
+    background: #dcfce7;
+    color: #166534;
+}
+.badge-unpaid {
+    background: #fef3c7;
+    color: #92400e;
 }

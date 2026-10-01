@@ -1,72 +1,85 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Edit {{ invoice.number }}{% endblock %}
+
 {% block content %}
-<h2>Edit Invoice #{{ invoice.id }}</h2>
+<div class="page-header">
+    <h2>Edit Invoice {{ invoice.number }}</h2>
+</div>
 
-<form method="POST">
-    <h3>Your Company Details</h3>
-    <div>
-        <label class="required-label">Your Company Name</label>
-        <input type="text" name="my_company_name" value="{{ invoice.my_company_name }}" required>
-    </div>
-    <div>
-        <label class="required-label">Your Company Address & Contact</label>
-        <textarea name="my_company_details" rows="2" required>{{ invoice.my_company_details }}</textarea>
-    </div>
-    
-    <hr>
+<form method="post">
+    <div class="form-narrow">
+        <label>Customer
+            <select name="customer_id" required>
+                {% for c in customers %}
+                <option value="{{ c.id }}" {{ "selected" if c.id == invoice.customer_id }}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
 
-    <h3>Billing Details</h3>
-    <div>
-        <label class="required-label">Target Customer</label>
-        <select name="customer_id" required>
-            {% for c in customers %}
-                <option value="{{ c.id }}" {% if c.id == invoice.customer.id %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    
-    <div>
-        <label class="required-label">Invoice Date</label>
-        <input type="date" name="invoice_date" value="{{ invoice.invoice_date }}" required>
-    </div>
-    
-    <div>
-        <label class="required-label">Due Date</label>
-        <input type="date" name="due_date" value="{{ invoice.due_date }}" required>
+        <label>Date
+            <input type="date" name="date" value="{{ invoice.date }}" required>
+        </label>
+
+        <label>Status
+            <select name="status">
+                <option {{ "selected" if invoice.status == "Unpaid" }}>Unpaid</option>
+                <option {{ "selected" if invoice.status == "Paid" }}>Paid</option>
+            </select>
+        </label>
     </div>
 
     <h3>Line Items</h3>
-    <div id="items-container">
-        {% for item in invoice.items %}
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <input type="text" name="desc[]" value="{{ item.description }}" placeholder="Description/Service" style="flex:3;" required>
-            <input type="number" name="qty[]" value="{{ "%g" % item.quantity }}" placeholder="Qty" style="flex:1;" step="0.01" required>
-            <input type="number" name="price[]" value="{{ item.unit_price }}" placeholder="Price" style="flex:1;" step="0.01" required>
-        </div>
-        {% endfor %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="width: 90px;">Qty</th>
+                    <th style="width: 130px;">Price</th>
+                    <th style="width: 90px;"></th>
+                </tr>
+            </thead>
+            <tbody id="lines">
+                {% for line in invoice.lines %}
+                <tr>
+                    <td><input type="text" name="description" value="{{ line.description }}" required></td>
+                    <td><input type="number" name="quantity" value="{{ line.quantity }}" min="1" required></td>
+                    <td><input type="number" name="price" value="{{ line.price }}" min="0" step="0.01" required></td>
+                    <td><button type="button" class="secondary" onclick="this.closest('tr').remove()">Remove</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    
-    <div style="margin-bottom:20px;">
-        <button type="button" onclick="addRow()">+ Add Line Item</button>
+
+    <p><button type="button" class="secondary" onclick="addLine()">+ Add Line</button></p>
+
+    <div class="form-narrow">
+        <label>Notes
+            <textarea name="notes" rows="3" placeholder="Payment terms, thank-you note...">{{ invoice.notes }}</textarea>
+        </label>
     </div>
-    
-    <div style="display:flex; gap:10px; align-items:center;">
-        <button type="submit">Save Changes</button>
-        <a href="{{ url_for('invoice_view', invoice_id=invoice.id) }}">Cancel</a>
+
+    <div class="actions">
+        <button type="submit">Save Invoice</button>
+        <a href="{{ url_for('invoice_view', id=invoice.id) }}" class="button secondary">Cancel</a>
     </div>
 </form>
 
+<template id="line-template">
+    <tr>
+        <td><input type="text" name="description" required></td>
+        <td><input type="number" name="quantity" value="1" min="1" required></td>
+        <td><input type="number" name="price" value="0" min="0" step="0.01" required></td>
+        <td><button type="button" class="secondary" onclick="this.closest('tr').remove()">Remove</button></td>
+    </tr>
+</template>
+
 <script>
-function addRow() {
-    var container = document.getElementById('items-container');
-    var div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.gap = '10px';
-    div.style.marginBottom = '10px';
-    div.innerHTML = '<input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>' +
-                    '<input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>' +
-                    '<input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>';
-    container.appendChild(div);
-}
+    function addLine() {
+        const row = document.getElementById("line-template").content.cloneNode(true);
+        document.getElementById("lines").appendChild(row);
+    }
 </script>
 {% endblock %}

@@ -1,68 +1,91 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Create Invoice{% endblock %}
+
 {% block content %}
-<h2>Generate New Invoice</h2>
+<div class="page-header">
+    <h2>Create Invoice</h2>
+</div>
 
-<form method="POST">
-    <h3>Your Company Details</h3>
-    <div>
-        <label class="required-label">Your Company Name</label>
-        <input type="text" name="my_company_name" value="Your Company Name" required>
-    </div>
-    <div>
-        <label class="required-label">Your Company Address & Contact</label>
-        <textarea name="my_company_details" rows="2" required>22 IT Park, Panchkula&#10;Haryana, Chandigarh, 160101</textarea>
-    </div>
-    
-    <hr>
-
-    <h3>Billing Details</h3>
-    <div>
-        <label class="required-label">Target Customer</label>
-        <select name="customer_id" required>
-            <option value="">-- Choose Account --</option>
-            {% for c in customers %}
+<form method="post">
+    <div class="form-narrow">
+        <label>Customer
+            <select name="customer_id" required>
+                <option value="">-- Choose customer --</option>
+                {% for c in customers %}
                 <option value="{{ c.id }}">{{ c.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    
-    <div>
-        <label class="required-label">Invoice Date</label>
-        <input type="date" name="invoice_date" required>
-    </div>
-    
-    <div>
-        <label class="required-label">Due Date</label>
-        <input type="date" name="due_date" required>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Date
+            <input type="date" name="date" value="{{ today }}" required>
+        </label>
     </div>
 
     <h3>Line Items</h3>
-    <div id="items-container">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>
-            <input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>
-            <input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>
-        </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="width: 90px;">Qty</th>
+                    <th style="width: 130px;">Price</th>
+                    <th style="width: 90px;"></th>
+                </tr>
+            </thead>
+            <tbody id="lines"></tbody>
+        </table>
     </div>
-    
-    <div style="margin-bottom:20px;">
-        <button type="button" onclick="addRow()">+ Add Line Item</button>
+
+    <div class="actions">
+        <button type="button" class="secondary" onclick="addLine()">+ Add Line</button>
+        {% if items %}
+        <select id="saved-item" style="max-width: 220px;">
+            <option value="">Add from saved items...</option>
+            {% for i in items %}
+            <option value="{{ i.id }}" data-name="{{ i.name }}" data-price="{{ i.price }}">{{ i.name }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
     </div>
-    
-    <button type="submit">Process & Finalize Invoice</button>
+
+    <div class="form-narrow" style="margin-top: 16px;">
+        <label>Notes
+            <textarea name="notes" rows="3" placeholder="Payment terms, thank-you note..."></textarea>
+        </label>
+    </div>
+
+    <div class="actions">
+        <button type="submit">Save Invoice</button>
+        <a href="{{ url_for('invoices') }}" class="button secondary">Cancel</a>
+    </div>
 </form>
 
 <script>
-function addRow() {
-    var container = document.getElementById('items-container');
-    var div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.gap = '10px';
-    div.style.marginBottom = '10px';
-    div.innerHTML = '<input type="text" name="desc[]" placeholder="Description/Service" style="flex:3;" required>' +
-                    '<input type="number" name="qty[]" placeholder="Qty" style="flex:1;" step="0.01" required>' +
-                    '<input type="number" name="price[]" placeholder="Price" style="flex:1;" step="0.01" required>';
-    container.appendChild(div);
-}
+    function addLine(description = "", price = 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="text" name="description" required></td>
+            <td><input type="number" name="quantity" value="1" min="1" required></td>
+            <td><input type="number" name="price" min="0" step="0.01" required></td>
+            <td><button type="button" class="secondary" onclick="this.closest('tr').remove()">Remove</button></td>`;
+        row.querySelector("[name=description]").value = description;
+        row.querySelector("[name=price]").value = price;
+        document.getElementById("lines").appendChild(row);
+    }
+
+    // start with one empty line
+    addLine();
+
+    // fill a line from a saved item
+    const saved = document.getElementById("saved-item");
+    if (saved) {
+        saved.addEventListener("change", () => {
+            const opt = saved.selectedOptions[0];
+            if (opt.value) addLine(opt.dataset.name, opt.dataset.price);
+            saved.value = "";
+        });
+    }
 </script>
 {% endblock %}

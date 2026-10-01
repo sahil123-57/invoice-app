@@ -1,19 +1,32 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit" if customer else "Add" }} Customer{% endblock %}
+
 {% block content %}
-<h2>Add Customer Profile</h2>
-<form method="POST">
-    <div>
-        <label class="required-label">Full Name</label>
-        <input type="text" name="name" required>
+<div class="page-header">
+    <h2>{{ "Edit" if customer else "Add" }} Customer</h2>
+</div>
+
+<form method="post" class="form-narrow">
+    <label>Full Name
+        <input type="text" name="name" value="{{ customer.name if customer else '' }}" placeholder="John Doe" required>
+    </label>
+
+    <label>Email
+        <input type="email" name="email" value="{{ customer.email if customer else '' }}" placeholder="john@example.com">
+    </label>
+
+    <label>Phone
+        <input type="text" name="phone" value="{{ customer.phone if customer else '' }}" placeholder="+91 98765 43210">
+    </label>
+
+    <label>Billing Address
+        <textarea name="address" rows="3" placeholder="Street, city, state, postal code">{{ customer.address if customer else '' }}</textarea>
+    </label>
+
+    <div class="actions">
+        <button type="submit">Save Customer</button>
+        <a href="{{ url_for('customers') }}" class="button secondary">Cancel</a>
     </div>
-    <div>
-        <label class="required-label">Email Address</label>
-        <input type="email" name="email" required>
-    </div>
-    <div>
-        <label class="required-label">Physical Billing Address</label>
-        <textarea name="address" rows="3" placeholder="Enter complete billing layout..." required></textarea>
-    </div>
-    <button type="submit">Save Customer</button>
 </form>
 {% endblock %}

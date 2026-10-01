@@ -1,33 +1,59 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h2>Invoice Dashboard</h2>
+<div class="page-header">
+    <h2>Dashboard</h2>
+    <a href="{{ url_for('add_invoice') }}" class="button">+ Create Invoice</a>
+</div>
 
-<p>
-    <a href="{{ url_for('invoice_form') }}">Create New Invoice</a>
-</p>
+<div class="stats">
+    <div class="stat">
+        <div class="muted">Total Invoices</div>
+        <strong>{{ count }}</strong>
+    </div>
+    <div class="stat">
+        <div class="muted">Unpaid</div>
+        <strong>₹{{ '%.2f'|format(unpaid_total) }}</strong>
+    </div>
+    <div class="stat">
+        <div class="muted">Paid</div>
+        <strong>₹{{ '%.2f'|format(paid_total) }}</strong>
+    </div>
+</div>
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Customer</th>
-            <th>Issue Date</th>
-            <th>Due Date</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for inv in invoices %}
-        <tr>
-            <td>#{{ inv.id }}</td>
-            <td>{{ inv.customer.name }}</td>
-            <td>{{ inv.invoice_date }}</td>
-            <td>{{ inv.due_date }}</td>
-            <td>
-                <a href="{{ url_for('invoice_view', invoice_id=inv.id) }}">View Invoice</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h3>Recent Invoices</h3>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th class="right">Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr>
+                <td><strong>{{ inv.number }}</strong></td>
+                <td>{{ inv.customer.name }}</td>
+                <td>{{ inv.date }}</td>
+                <td><span class="badge badge-{{ inv.status|lower }}">{{ inv.status }}</span></td>
+                <td class="right">₹{{ '%.2f'|format(inv.total) }}</td>
+                <td class="right">
+                    <a href="{{ url_for('invoice_view', id=inv.id) }}">View</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="muted">No invoices yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
