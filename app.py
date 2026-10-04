@@ -1,13 +1,23 @@
 import io
+import json  # REDIS: to store the stats dictionary as text
 from datetime import date
 from decimal import Decimal
 
+import redis  # REDIS: the client library
 from flask import Flask, render_template, request, redirect, url_for, send_file, abort
 
 from database import db, init_db, Customer, Item, Invoice, InvoiceLine
 
 app = Flask(__name__)
 init_db()
+
+# REDIS: connection to the Redis server
+cache = redis.Redis(
+    host="localhost",
+    port=6379,
+    decode_responses=True,       # get text back instead of bytes
+    socket_connect_timeout=1,    # don't hang if Redis is not running
+)
 
 
 # open / close the database for every request
@@ -20,6 +30,17 @@ def open_db():
 def close_db(exc):
     if not db.is_closed():
         db.close()
+
+
+# REDIS: after any POST (add / edit / delete), throw away the cached totals
+@app.after_request
+def clear_stats(response):
+    if request.method == "POST":
+        try:
+            cache.delete("stats")
+        except redis.RedisError:
+            pass
+    return response
 
 
 def get_or_404(model, id):
@@ -54,19 +75,39 @@ def save_lines(invoice):
             )
 
 
+# REDIS: dashboard totals, cached for 60 seconds
+def get_stats():
+    # 1. try Redis first
+    try:
+        cached = cache.get("stats")
+        if cached:
+            print("Dashboard loaded from REDIS")
+            return json.loads(cached)
+    except redis.RedisError:
+        pass  # Redis is down, so use the database instead
+
+    # 2. not in Redis, so calculate from the database
+    print("Dashboard loaded from DATABASE")
+    rows = list(Invoice.select())
+    stats = {
+        "count": len(rows),
+        "paid_total": float(sum((i.total for i in rows if i.status == "Paid"), 0)),
+        "unpaid_total": float(sum((i.total for i in rows if i.status != "Paid"), 0)),
+    }
+
+    # 3. save the result in Redis for next time (expires after 60 seconds)
+    try:
+        cache.set("stats", json.dumps(stats), ex=60)
+    except redis.RedisError:
+        pass
+    return stats
+
+
 # ---------- dashboard ----------
 @app.route("/")
 def index():
-    all_invoices = list(Invoice.select().order_by(Invoice.id.desc()))
-    paid_total = sum((i.total for i in all_invoices if i.status == "Paid"), 0)
-    unpaid_total = sum((i.total for i in all_invoices if i.status != "Paid"), 0)
-    return render_template(
-        "index.html",
-        invoices=all_invoices[:5],
-        count=len(all_invoices),
-        paid_total=paid_total,
-        unpaid_total=unpaid_total,
-    )
+    recent = Invoice.select().order_by(Invoice.id.desc()).limit(5)
+    return render_template("index.html", invoices=recent, **get_stats())
 
 
 # ---------- customers ----------
